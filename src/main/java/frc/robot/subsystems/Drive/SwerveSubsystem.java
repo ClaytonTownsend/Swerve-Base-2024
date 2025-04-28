@@ -1,9 +1,11 @@
 package frc.robot.subsystems.drive;
+
+import static frc.robot.subsystems.drive.DriveConstants.*;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.Kinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -15,7 +17,7 @@ public class SwerveSubsystem {
     // Attributes
     SwerveDriveKinematics kinematics;
     SwerveDriveOdometry   odometry;
-    Pigeon2               gyro;
+    GyroPigeon2               gyro;
     SwerveModule[]        swerveModules;
 
     public void swerveDrive()
@@ -25,15 +27,10 @@ public class SwerveSubsystem {
 
         // Create a new SwerveDriveKinematics object with the locations of the swerve modules
         // The locations are defined in meters relative to the center of the robot\
-        kinematics = new SwerveDriveKinematics(
-                new Translation2d(Units.inchesToMeters(12.4375), Units.inchesToMeters(12.4375)), // Front left
-                new Translation2d(Units.inchesToMeters(12.4375), Units.inchesToMeters(-12.4375)), // Front right
-                new Translation2d(Units.inchesToMeters(-12.4375), Units.inchesToMeters(12.4375)), // Back left
-                new Translation2d(Units.inchesToMeters(-12.4375), Units.inchesToMeters(-12.4375)) // Back right
-        );
+        kinematics = new SwerveDriveKinematics(moduleTranslations);
 
         // Initialize the gyroscope
-        gyro = new Pigeon2();
+        gyro = new GyroPigeon2();
 
         // Initialize the odometry
         odometry = new SwerveDriveOdometry(
@@ -76,7 +73,6 @@ public class SwerveSubsystem {
         };
     }
 
-    @Override
     public void periodic()
     {
         // Update the odometry every run.
