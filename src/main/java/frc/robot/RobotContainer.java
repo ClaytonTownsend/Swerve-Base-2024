@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 
@@ -58,7 +59,7 @@ public class RobotContainer {
         -MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.kDriveDeadband),
         -MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.kDriveDeadband),
         -MathUtil.applyDeadband(m_driverController.getRightX(), OperatorConstants.kDriveDeadband),
-        true),
+        DriveConstants.isFieldRelative),
         m_SwerveSubsystem);
   
     publisher = NetworkTableInstance.getDefault()

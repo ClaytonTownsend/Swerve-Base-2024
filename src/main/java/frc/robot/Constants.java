@@ -19,6 +19,9 @@ import edu.wpi.first.math.util.Units;
  */
 public final class Constants {
   public class DriveConstants {
+      // Is the drive feild relitive
+      public static final boolean isFieldRelative = true;
+
       public static final double maxSpeedMetersPerSec = 3.62; // Circumference of wheel * Max Wheel RPS
       public static final double odometryFrequency = 100.0; // Hz
 
