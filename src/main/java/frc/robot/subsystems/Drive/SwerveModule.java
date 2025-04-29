@@ -25,7 +25,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 public class SwerveModule {
-
+    
     private SparkMax driveMotor;
     private SparkMax steerMotor;
     private CANcoder absoluteEncoder;

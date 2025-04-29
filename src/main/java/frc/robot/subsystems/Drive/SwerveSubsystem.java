@@ -180,8 +180,7 @@ public class SwerveSubsystem extends SubsystemBase{
                 fieldRelative
                         ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered,
                                 Rotation2d.fromDegrees(pigeon2.getYaw().getValueAsDouble()))
-                        : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered)
-        );
+                        : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
 
         // Normalize wheel speeds if any exceed the max allowed, to preserve direction while staying within limits
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.maxSpeedMetersPerSec);
