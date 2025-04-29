@@ -1,66 +1,72 @@
 package frc.robot.subsystems.drive;
 
-import static frc.robot.subsystems.drive.DriveConstants.*;
+import frc.robot.Constants.DriveConstants;
 
+import com.ctre.phoenix6.hardware.Pigeon2;
+
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class SwerveSubsystem {
+public class SwerveSubsystem extends SubsystemBase{
+    // Create Swerve Modules
+    private final SwerveModule frontLeft = new SwerveModule(
+        DriveConstants.frontLeftDriveCanId,
+        DriveConstants.frontLeftTurnCanId,
+        DriveConstants.frontLeftCANcoderID,
+        DriveConstants.kFrontLeftChassisAngularOffset
+    );
 
-    // Attributes
-    SwerveDriveKinematics kinematics;
-    SwerveDriveOdometry   odometry;
-    GyroPigeon2               gyro;
-    SwerveModule[]        swerveModules;
+    private final SwerveModule frontRight = new SwerveModule(
+        DriveConstants.frontRightDriveCanId,
+        DriveConstants.frontRightTurnCanId,
+        DriveConstants.frontRightCANcoderID,
+        DriveConstants.kFrontRightChassisAngularOffset
+    );
 
-    public void swerveDrive()
-    {
-        // Initialize the swerve modules
-        swerveModules = new SwerveModule[4];
+    private final SwerveModule backLeft = new SwerveModule(
+        DriveConstants.backLeftDriveCanId,
+        DriveConstants.backLeftTurnCanId,
+        DriveConstants.backLeftCANcoderID,
+        DriveConstants.kBackLeftChassisAngularOffset
+    );
 
-        // Create a new SwerveDriveKinematics object with the locations of the swerve modules
-        // The locations are defined in meters relative to the center of the robot\
-        kinematics = new SwerveDriveKinematics(moduleTranslations);
+    private final SwerveModule backRight = new SwerveModule(
+        DriveConstants.backRightDriveCanId,
+        DriveConstants.backRightTurnCanId,
+        DriveConstants.backRightCANcoderID,
+        DriveConstants.kBackRightChassisAngularOffset
+    );
 
-        // Initialize the gyroscope
-        gyro = new GyroPigeon2();
+    // Create an array of swerve modules
+    private final SwerveModule[] swerveModules = new SwerveModule[] {
+        frontLeft,
+        frontRight,
+        backLeft,
+        backRight
+    };
 
-        // Initialize the odometry
-        odometry = new SwerveDriveOdometry(
-                kinematics,
-                gyro.getAngle(), // returns current gyro reading as a Rotation2d
-                new SwerveModulePosition[] {
-                        new SwerveModulePosition(), // Front-Left
-                        new SwerveModulePosition(), //Front-Right
-                        new SwerveModulePosition(), // Back-Left
-                        new SwerveModulePosition() // Back-Right
-                },
-                // Initial position of the robot
-                new Pose2d(0, 0, new Rotation2d()) // X = 0, Y = 0, Heading = 0
-        );
-    }
+    private final Pigeon2 pigeon2 = new Pigeon2(DriveConstants.pigeonCanId, "CANivore");
 
-    public void drive()
-    {
-        // Create test ChassisSpeeds going X = 14in, Y=4in, and spins at 30deg per second.
-        ChassisSpeeds testChassisSpeeds = new ChassisSpeeds(Units.inchesToMeters(14), Units.inchesToMeters(4), Units.degreesToRadians(30));
+    // Create a new SwerveDriveKinematics object with the locations of the swerve modules
+    // The locations are defined in meters relative to the center of the robot\
+    SwerveDriveKinematics kinematics = new SwerveDriveKinematics(DriveConstants.moduleTranslations);
 
-        // Get swerve module states from the chassis speeds
-        SwerveModuleState[] swerveModuleStates = kinematics.toSwerveModuleStates(testChassisSpeeds);
-
-        // Set the swerve module states to the swerve modules
-        swerveModules[0].setState(swerveModuleStates[0]); // Front-Left
-        swerveModules[1].setState(swerveModuleStates[1]); // Front-Right
-        swerveModules[2].setState(swerveModuleStates[2]); // Back-Left
-        swerveModules[3].setState(swerveModuleStates[3]); // Back-Right
-    }
+    // Initialize the odometry
+    SwerveDrivePoseEstimator odometry = new SwerveDrivePoseEstimator(
+            kinematics,
+            Rotation2d.fromDegrees(pigeon2.getYaw().getValueAsDouble()), // returns current gyro reading as a Rotation2d
+            new SwerveModulePosition[] {
+                    new SwerveModulePosition(), // Front-Left
+                    new SwerveModulePosition(), //Front-Right
+                    new SwerveModulePosition(), // Back-Left
+                    new SwerveModulePosition() // Back-Right
+            }, Pose2d.kZero);
 
     // Fetch the current swerve module positions.
     public SwerveModulePosition[] getCurrentSwerveModulePositions()
@@ -73,12 +79,175 @@ public class SwerveSubsystem {
         };
     }
 
+    @Override
     public void periodic()
     {
+        // Update the relitive econders to be the same as the CANcoder
+        swerveModules[0].updateEncoderState();
+        swerveModules[1].updateEncoderState();
+        swerveModules[2].updateEncoderState();
+        swerveModules[3].updateEncoderState();
+
         // Update the odometry every run.
         odometry.update(
-                gyro.getAngle(), // returns current gyro reading as a Rotation2d
+                Rotation2d.fromDegrees(pigeon2.getYaw().getValueAsDouble()), // returns current gyro reading as a Rotation2d
                 getCurrentSwerveModulePositions() // Get the current swerve module positions
         );
+    }
+
+    public ChassisSpeeds getRobotRelativeSpeeds()
+    {
+        return kinematics.toChassisSpeeds(
+                swerveModules[0].getState(),
+                swerveModules[1].getState(),
+                swerveModules[2].getState(),
+                swerveModules[3].getState()
+        );
+    }
+
+    public void driveRelative(ChassisSpeeds speeds)
+    {
+        // Extract the individual speed components from the ChassisSpeeds object
+        boolean fieldRelative = false; // The robot is robot orentend
+        double xSpeedDelivered = speeds.vxMetersPerSecond;         // Forward/backward speed
+        double ySpeedDelivered = speeds.vyMetersPerSecond;         // Left/right strafe speed
+        double rotDelivered = speeds.omegaRadiansPerSecond;        // Rotational speed (angular velocity)
+
+        // Convert chassis speeds to swerve module states (individual wheel speeds and angles)
+        // If driving field-relative, convert using current gyro heading (from pigeon2); otherwise use robot-relative
+        var swerveModuleStates = kinematics.toSwerveModuleStates(
+                fieldRelative
+                        ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered,
+                                Rotation2d.fromDegrees(pigeon2.getYaw().getValueAsDouble()))
+                        : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered)
+        );
+
+        // Normalize wheel speeds if any exceed the max allowed, to preserve direction while staying within limits
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.maxSpeedMetersPerSec);
+
+        // Send the desired state (speed + angle) to each swerve module
+        swerveModules[0].setDesiredState(swerveModuleStates[0]);
+        swerveModules[1].setDesiredState(swerveModuleStates[1]);
+        swerveModules[2].setDesiredState(swerveModuleStates[2]);
+        swerveModules[3].setDesiredState(swerveModuleStates[3]);
+    }
+
+    /**
+    * Returns the currently-estimated pose of the robot.
+    *
+    * @return The pose.
+    */
+    public Pose2d getPose() {
+        return odometry.getEstimatedPosition();
+    }
+
+    /**
+    * Resets the odometry to the specified pose.
+    *
+    * @param pose The pose to which to set the odometry.
+    */
+    public void resetOdometry(Pose2d pose) {
+        odometry.resetPosition(
+            Rotation2d.fromDegrees(pigeon2.getYaw().getValueAsDouble()),
+            new SwerveModulePosition[] {
+                swerveModules[0].getPosition(),
+                swerveModules[1].getPosition(),
+                swerveModules[2].getPosition(),
+                swerveModules[3].getPosition()
+            },
+            pose);
+    }
+
+    /**
+    * Method to drive the robot using joystick info.
+    *
+    * @param xSpeed        Speed of the robot in the x direction (forward).
+    * @param ySpeed        Speed of the robot in the y direction (sideways).
+    * @param rot           Angular rate of the robot.
+    * @param fieldRelative Whether the provided x and y speeds are relative to the
+    *                      field.
+    */
+    public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative)
+    {
+        // Convert the commanded speeds into the correct units for the drivetrain
+        double xSpeedDelivered = xSpeed * DriveConstants.maxSpeedMetersPerSec;
+        double ySpeedDelivered = ySpeed * DriveConstants.maxSpeedMetersPerSec;
+        double rotDelivered = rot * DriveConstants.maxSpeedMetersPerSec;
+
+        // Convert chassis speeds to swerve module states (individual wheel speeds and angles)
+        // If driving field-relative, convert using current gyro heading (from pigeon2); otherwise use robot-relative
+        var swerveModuleStates = kinematics.toSwerveModuleStates(
+                fieldRelative
+                        ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered,
+                                Rotation2d.fromDegrees(pigeon2.getYaw().getValueAsDouble()))
+                        : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered)
+        );
+
+        // Normalize wheel speeds if any exceed the max allowed, to preserve direction while staying within limits
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.maxSpeedMetersPerSec);
+
+        // Send the desired state (speed + angle) to each swerve module
+        swerveModules[0].setDesiredState(swerveModuleStates[0]);
+        swerveModules[1].setDesiredState(swerveModuleStates[1]);
+        swerveModules[2].setDesiredState(swerveModuleStates[2]);
+        swerveModules[3].setDesiredState(swerveModuleStates[3]);
+    }
+
+    public void setX()
+    {
+        swerveModules[0].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
+        swerveModules[1].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
+        swerveModules[2].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
+        swerveModules[3].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
+    }
+
+    /**
+    * Sets the swerve ModuleStates.
+    *
+    * @param desiredStates The desired SwerveModule states.
+    */
+    public void setModuleStates(SwerveModuleState[] desiredStates) {
+        // Limits the wheel speeds so none exceed the maximum speed of the robot.
+        SwerveDriveKinematics.desaturateWheelSpeeds(
+            desiredStates, 
+            DriveConstants.maxSpeedMetersPerSec
+        );
+
+        // Applies the corrected (or unmodified) desired state to each swerve module.
+        swerveModules[0].setDesiredState(desiredStates[0]); // Front Left
+        swerveModules[1].setDesiredState(desiredStates[1]); // Front Right
+        swerveModules[2].setDesiredState(desiredStates[2]); // Back Left
+        swerveModules[3].setDesiredState(desiredStates[3]); // Back Right
+    }
+
+    // Resets the drive encoders to currently read a position of 0.
+    public void resetEncoders() {
+        swerveModules[0].resetEncoders();
+        swerveModules[1].resetEncoders();
+        swerveModules[2].resetEncoders();
+        swerveModules[3].resetEncoders();
+    }  
+
+    // Zeros the heading of the robot.
+    public void zeroHeading() {
+        pigeon2.reset();
+    }
+
+    /**
+    * Returns the heading of the robot.
+    *
+    * @return the robot's heading in degrees, from -180 to 180
+    */
+    public double getHeading() {
+        return Rotation2d.fromDegrees(pigeon2.getYaw().getValueAsDouble()).getDegrees();
+    }
+
+    /**
+    * Returns the turn rate of the robot.
+    *
+    * @return The turn rate of the robot, in degrees per second
+    */
+    public double getTurnRate() {
+        return pigeon2.getYaw().getValueAsDouble() * (DriveConstants.gyroReversed ? -1.0 : 1.0);
     }
 }

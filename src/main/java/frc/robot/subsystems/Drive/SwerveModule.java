@@ -1,7 +1,7 @@
 package frc.robot.subsystems.drive;
 
 import static frc.robot.util.SparkUtil.*;
-import static frc.robot.subsystems.drive.DriveConstants.*;
+import frc.robot.Constants.DriveConstants;
 
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -37,7 +37,7 @@ public class SwerveModule {
     private double m_chassisAngularOffset = 0;
     private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
     
-    public SwerveModule(int driveMotorCANID, int steerMotorCANID, double chassisAngularOffset, int cancoderCANID)
+    public SwerveModule(int driveMotorCANID, int steerMotorCANID, int cancoderCANID, double chassisAngularOffset)
     {
         driveMotor = new SparkMax(driveMotorCANID, MotorType.kBrushless);
         steerMotor = new SparkMax(steerMotorCANID, MotorType.kBrushless);
@@ -71,7 +71,7 @@ public class SwerveModule {
 
         // Steering Motor Configuration
         steerConfig
-            .inverted(turnEncoderInverted)
+            .inverted(DriveConstants.turnEncoderInverted)
             .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(DriveConstants.turnMotorCurrentLimit)
             .voltageCompensation(12.0);
@@ -79,8 +79,8 @@ public class SwerveModule {
             // Apply position and velocity conversion factors for the turning encoder. We
             // want these in radians and radians per second to use with WPILib's swerve
             // APIs.
-            .positionConversionFactor(turnEncoderPositionFactor)
-            .velocityConversionFactor(turnEncoderVelocityFactor)
+            .positionConversionFactor(DriveConstants.turnEncoderPositionFactor)
+            .velocityConversionFactor(DriveConstants.turnEncoderVelocityFactor)
             .uvwAverageDepth(2);
         steerConfig.closedLoop
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -88,10 +88,10 @@ public class SwerveModule {
             .positionWrappingInputRange(DriveConstants.turnPIDMinInput, DriveConstants.turnPIDMaxInput)
             // Set the PID gains for the turning motor
             .pidf(
-                kTurningP,  // Proportional gain - how strongly the controller reacts to error
-                kTurningI,  // Integral gain - helps eliminate steady-state error over time
-                kTurningD,  // Derivative gain - dampens the system based on the rate of error change
-                kTurningFF  // Feedforward - anticipates needed output based on desired motion
+                DriveConstants.kTurningP,  // Proportional gain - how strongly the controller reacts to error
+                DriveConstants.kTurningI,  // Integral gain - helps eliminate steady-state error over time
+                DriveConstants.kTurningD,  // Derivative gain - dampens the system based on the rate of error change
+                DriveConstants.kTurningFF  // Feedforward - anticipates needed output based on desired motion
              );
         steerConfig.signals
         // Always have the primary encoder's position reporting enabled.
@@ -143,7 +143,7 @@ public class SwerveModule {
 
         // Drive Motor Configuration
         driveConfig
-            .inverted(driveEncoderInverted)
+            .inverted(DriveConstants.driveEncoderInverted)
             .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(DriveConstants.driveMotorCurrentLimit)
             .voltageCompensation(12.0);
@@ -159,10 +159,10 @@ public class SwerveModule {
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
             // Set the PID gains for the driving motor
             .pidf(
-                    kDrivingP,  // Proportional gain - how strongly the controller reacts to error
-                    kDrivingI,  // Integral gain - helps eliminate steady-state error over time
-                    kDrivingD,  // Derivative gain - dampens the system based on the rate of error change
-                    kDrivingFF  // Feedforward - anticipates needed output based on desired motion
+                    DriveConstants.kDrivingP,  // Proportional gain - how strongly the controller reacts to error
+                    DriveConstants.kDrivingI,  // Integral gain - helps eliminate steady-state error over time
+                    DriveConstants.kDrivingD,  // Derivative gain - dampens the system based on the rate of error change
+                    DriveConstants.kDrivingFF  // Feedforward - anticipates needed output based on desired motion
                  );
         driveConfig.signals
             // Ensure the primary encoder's position is always being measured.
@@ -223,7 +223,7 @@ public class SwerveModule {
     */
     public Rotation2d getAngle()
     {
-        return Rotation2d.fromDegrees(steerEncoder.getPosition());
+        return Rotation2d.fromDegrees(steerEncoder.getPosition() - m_chassisAngularOffset);
     }
 
     /**
