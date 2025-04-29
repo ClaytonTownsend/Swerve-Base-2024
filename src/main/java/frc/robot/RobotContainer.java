@@ -6,27 +6,20 @@ package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
-import frc.robot.subsystems.drive.SwerveModule;
-
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.PS4Controller.Button;
-import frc.robot.Constants.DriveConstants;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import java.util.List;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.PS4Controller.Button;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -44,23 +37,33 @@ public class RobotContainer {
   // Create a manipulator controller
   private final XboxController m_manipulatorController = new XboxController(OperatorConstants.kManipulatorControllerPort);
 
+  private final StructArrayPublisher<SwerveModuleState> publisher;
+  private final SendableChooser<Command> autoChooser;
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the button bindings
     configureButtonBindings();
 
-    // Configure default commands
-    m_SwerveSubsystem.setDefaultCommand(
+    // Build an auto chooser. This will use Commands.none() as the default option.
+    autoChooser = AutoBuilder.buildAutoChooser();
+
+    // Add the auto chooser to the SmartDashboard
+    SmartDashboard.putData("Auto Chooser", autoChooser);
       
-      // The left stick controls translation of the robot.
-      // Turning is controlled by the X axis of the right stick.
-      new RunCommand(
-        () -> m_SwerveSubsystem.drive(
-          -MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.kDriveDeadband),
-          -MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.kDriveDeadband),
-          -MathUtil.applyDeadband(m_driverController.getRightX(), OperatorConstants.kDriveDeadband),
-          true),
-          m_SwerveSubsystem));
+    // The left stick controls translation of the robot.
+    // Turning is controlled by the X axis of the right stick.
+    new RunCommand(
+      () -> m_SwerveSubsystem.drive(
+        -MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.kDriveDeadband),
+        -MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.kDriveDeadband),
+        -MathUtil.applyDeadband(m_driverController.getRightX(), OperatorConstants.kDriveDeadband),
+        true),
+        m_SwerveSubsystem);
+  
+    publisher = NetworkTableInstance.getDefault()
+    .getStructArrayTopic("MyStates", SwerveModuleState.struct)
+    .publish();
   }
 
   /**
@@ -77,10 +80,10 @@ public class RobotContainer {
         .whileTrue(new RunCommand(
             () -> m_SwerveSubsystem.setX(),
             m_SwerveSubsystem));
+  }
 
-
-
-    
+  public void periodic() {
+    publisher.set(m_SwerveSubsystem.getSwerveModulesState());
   }
 
   /**
@@ -89,13 +92,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-        // TODO: Replace with actual autonomous command or command group
-      return new RunCommand(
-        () -> m_SwerveSubsystem.drive(
-          -MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.kDriveDeadband),
-          -MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.kDriveDeadband),
-          -MathUtil.applyDeadband(m_driverController.getRightX(), OperatorConstants.kDriveDeadband),
-          true),
-          m_SwerveSubsystem);
+      // TODO: Replace with actual autonomous command or command group
+      return autoChooser.getSelected();
   }
 }

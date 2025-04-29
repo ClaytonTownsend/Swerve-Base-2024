@@ -111,13 +111,13 @@ public final class Constants {
           (2 * Math.PI) / 60.0 / turnMotorReduction; // Rotor RPM -> Wheel Rad/Sec
 
       // Drive PID configuration
-      public static final double kDrivingP = 0.0;
+      public static final double kDrivingP = 0.2;
       public static final double kDrivingI = 0.0;
       public static final double kDrivingD = 0.0;
       public static final double kDrivingFF = 0.0;
 
       // Turn PID configuration
-      public static final double kTurningP = 0.0;
+      public static final double kTurningP = 0.2;
       public static final double kTurningD = 0.0;
       public static final double kTurningI = 0.0;
       public static final double kTurningFF = 0.0;
@@ -125,6 +125,12 @@ public final class Constants {
       public static final double turnPIDMaxInput = 2 * Math.PI; // Radians
 
       public static final boolean gyroReversed = false;
+  }
+
+  public static final class AutoConstants {
+    public static final double kPXController = 1;
+    public static final double kPYController = 1;
+    public static final double kPThetaController = 1;
   }
 
   public static class OperatorConstants {
