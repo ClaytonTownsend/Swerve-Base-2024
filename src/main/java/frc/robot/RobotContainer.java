@@ -92,7 +92,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-      // TODO: Replace with actual autonomous command or command group
       return autoChooser.getSelected();
   }
 }

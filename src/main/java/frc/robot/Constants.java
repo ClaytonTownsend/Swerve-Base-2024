@@ -111,13 +111,13 @@ public final class Constants {
           (2 * Math.PI) / 60.0 / turnMotorReduction; // Rotor RPM -> Wheel Rad/Sec
 
       // Drive PID configuration
-      public static final double kDrivingP = 0.2;
+      public static final double kDrivingP = 0.4;
       public static final double kDrivingI = 0.0;
       public static final double kDrivingD = 0.0;
       public static final double kDrivingFF = 0.0;
 
       // Turn PID configuration
-      public static final double kTurningP = 0.2;
+      public static final double kTurningP = 1;
       public static final double kTurningD = 0.0;
       public static final double kTurningI = 0.0;
       public static final double kTurningFF = 0.0;
@@ -137,5 +137,9 @@ public final class Constants {
     public static final int kDriverControllerPort = 0;
     public static final int kManipulatorControllerPort = 1;
     public static final double kDriveDeadband = 0.05;
+  }
+
+  public static final class VisionConstants{
+    public static final String kLimelightName = "limelight"; // TODO: Change to actual name
   }
 }
