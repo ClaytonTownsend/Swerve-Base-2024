@@ -51,16 +51,18 @@ public class RobotContainer {
 
     // Add the auto chooser to the SmartDashboard
     SmartDashboard.putData("Auto Chooser", autoChooser);
-      
-    // The left stick controls translation of the robot.
-    // Turning is controlled by the X axis of the right stick.
-    new RunCommand(
-      () -> m_SwerveSubsystem.drive(
-        -MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.kDriveDeadband),
-        -MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.kDriveDeadband),
-        -MathUtil.applyDeadband(m_driverController.getRightX(), OperatorConstants.kDriveDeadband),
-        DriveConstants.isFieldRelative),
-        m_SwerveSubsystem);
+
+    // Configure default commands
+    m_SwerveSubsystem.setDefaultCommand(
+      // The left stick controls translation of the robot.
+      // Turning is controlled by the X axis of the right stick.
+      new RunCommand(
+        () -> m_SwerveSubsystem.drive(
+                -MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(m_driverController.getRightX(), OperatorConstants.kDriveDeadband),
+                DriveConstants.isFieldRelative),
+            m_SwerveSubsystem));
   
     /*publisher = NetworkTableInstance.getDefault()
     .getStructArrayTopic("MyStates", SwerveModuleState.struct)
