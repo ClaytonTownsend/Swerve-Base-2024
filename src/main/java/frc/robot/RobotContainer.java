@@ -38,7 +38,7 @@ public class RobotContainer {
   // Create a manipulator controller
   private final XboxController m_manipulatorController = new XboxController(OperatorConstants.kManipulatorControllerPort);
 
-  private final StructArrayPublisher<SwerveModuleState> publisher;
+  //private final StructArrayPublisher<SwerveModuleState> publisher;
   private final SendableChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -62,9 +62,9 @@ public class RobotContainer {
         DriveConstants.isFieldRelative),
         m_SwerveSubsystem);
   
-    publisher = NetworkTableInstance.getDefault()
+    /*publisher = NetworkTableInstance.getDefault()
     .getStructArrayTopic("MyStates", SwerveModuleState.struct)
-    .publish();
+    .publish();*/
   }
 
   /**
@@ -83,9 +83,9 @@ public class RobotContainer {
             m_SwerveSubsystem));
   }
 
-  public void periodic() {
+  /*public void periodic() {
     publisher.set(m_SwerveSubsystem.getSwerveModulesState());
-  }
+  }*/
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

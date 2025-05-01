@@ -41,7 +41,7 @@ public class SwerveModule {
     {
         driveMotor = new SparkMax(driveMotorCANID, MotorType.kBrushless);
         steerMotor = new SparkMax(steerMotorCANID, MotorType.kBrushless);
-        absoluteEncoder = new CANcoder(cancoderCANID);
+        absoluteEncoder = new CANcoder(cancoderCANID, "CANivore");
 
         // Get the PID Controllers
         drivingPIDController = driveMotor.getClosedLoopController();
